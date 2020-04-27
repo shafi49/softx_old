@@ -18,13 +18,12 @@ class SoftXApp extends StatelessWidget {
               backgroundColor: Colors.transparent,
               elevation: 0,
               centerTitle: true,
-              title: FlatButton(
+              title: IconButton(
+                color: Colors.blueGrey,
                 onPressed: () {
                   webViewKey.currentState?.goToHome();
                 },
-                child: IconButton(
-                  icon: Icon(Icons.home),
-                ),
+                icon: Icon(Icons.home),
               ),
               leading: IconButton(
                   color: Colors.blueGrey,
@@ -37,7 +36,7 @@ class SoftXApp extends StatelessWidget {
                   color: Colors.blueGrey,
                   icon: Icon(Icons.refresh),
                   onPressed: () {
-                    print('User pressed the button');
+//                    print('User pressed the button');
                     webViewKey.currentState?.reloadWebView();
                   },
                 ),
