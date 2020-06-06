@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 final webViewKey = GlobalKey<_SoftXWebViewState>();
+
 void main() => runApp(SoftXApp());
 
-class SoftXApp extends StatelessWidget {
+class SoftXApp extends StatefulWidget {
+  @override
+  _SoftXAppState createState() => _SoftXAppState();
+}
+
+class _SoftXAppState extends State<SoftXApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -43,34 +50,72 @@ class SoftXApp extends StatelessWidget {
               ],
             ),
           ),
-          body: SoftXWebView(key: webViewKey),
+          body: WillPopScope(
+            onWillPop: popped,
+            child: SoftXWebView(key: webViewKey),
+          ),
         ),
       ),
     );
+  }
+
+  DateTime currentTime;
+
+  Future<bool> popped() async {
+    // get current time
+    DateTime now = DateTime.now();
+
+    // backbutton pressed time difference either zero or 3 seconds
+
+    bool backbutton = currentTime == null ||
+        now.difference(currentTime) > Duration(seconds: 2);
+    if (backbutton) {
+      currentTime = now;
+      Fluttertoast.showToast(
+          msg: 'Tap again to exit',
+          backgroundColor: Colors.teal,
+          textColor: Colors.white);
+      return Future.value(false);
+    } else {
+      Fluttertoast.cancel();
+      return Future.value(true);
+    }
   }
 }
 
 class SoftXWebView extends StatefulWidget {
   SoftXWebView({Key key}) : super(key: key);
+
   @override
   _SoftXWebViewState createState() => _SoftXWebViewState();
 }
 
 class _SoftXWebViewState extends State<SoftXWebView> {
-  @override
 // Home Url
   final String selectedUrl = 'https://softx.app';
+
+//  var screenSize = MediaQuery.of(context).size;
+
+  GlobalKey<RefreshIndicatorState> refreshKey =
+      GlobalKey<RefreshIndicatorState>();
+
 //  Future<WebViewController> _webViewControllerFuture;
   WebViewController _webViewController;
+  double webViewContainerHeight = 600;
+
   // variables to make stacked indexes for widgets
   num position = 1;
 
 // keys will make sure each time we use loads it will generate a new screen
   final key = UniqueKey();
+
   // this function will make the loader disappear by pushing it behind the webview
-  void doneLoading(String A) {
+  Future<void> doneLoading(String A) async {
+    double height = double.parse(await _webViewController
+        .evaluateJavascript('document.documentElement.scrollHeight;'));
     setState(() {
       position = 0;
+      webViewContainerHeight = height;
     });
   }
 
@@ -96,6 +141,11 @@ class _SoftXWebViewState extends State<SoftXWebView> {
 
   goOneStepBack() {
     _webViewController?.goBack();
+  }
+
+  Future<Null> reloadOnRefresh() {
+    goToHome();
+    return null;
   }
 
   Widget build(BuildContext context) {
